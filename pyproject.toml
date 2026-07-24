@@ -1,0 +1,12 @@
+[project]
+name = "mcp-decision-lab"
+version = "0.1.0"
+description = "MCP server for structured decision-making — weighted decision matrices, criteria scoring, sensitivity analysis and a defensible recommendation."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Alejandro Brito", email = "alejandrobritoolivera@gmail.com"}]
+dependencies = ["mcp>=1.2.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
