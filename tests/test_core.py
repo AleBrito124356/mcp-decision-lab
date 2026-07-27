@@ -1,4 +1,4 @@
-"""Tests for core.py — run without the mcp package installed."""
+"""Tests for mcp_decision_lab.core — run without the mcp package installed."""
 
 import sys
 from pathlib import Path
@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from core import DecisionLab  # noqa: E402
+from mcp_decision_lab.core import DecisionLab  # noqa: E402
 
 
 @pytest.fixture()

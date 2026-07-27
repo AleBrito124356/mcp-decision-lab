@@ -1,12 +1,12 @@
 """mcp-decision-lab — MCP server entry point.
 
 Thin FastMCP wiring only: every tool delegates to core.DecisionLab.
-Run over stdio: python server.py
+Run over stdio: python -m mcp_decision_lab.server
 """
 
 from mcp.server.fastmcp import FastMCP
 
-from core import DecisionLab
+from .core import DecisionLab
 
 mcp = FastMCP("mcp-decision-lab")
 lab = DecisionLab()
@@ -115,5 +115,10 @@ def list_decisions() -> dict:
     return lab.list_decisions()
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Entry point for the console script."""
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()
