@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mcp-decision-lab"
-version = "0.1.0"
-description = "MCP server for structured decision-making — weighted decision matrices, criteria scoring, sensitivity analysis and a defensible recommendation."
+dynamic = ["version"]
+description = "MCP server for structured decision-making — weighted decision matrices, exact weight and score sensitivity, Monte Carlo robustness and a defensible recommendation."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
@@ -38,7 +39,13 @@ Source = "https://github.com/AleBrito124356/mcp-decision-lab"
 Issues = "https://github.com/AleBrito124356/mcp-decision-lab/issues"
 
 [project.scripts]
-mcp-decision-lab = "mcp_decision_lab.server:main"
+mcp-decision-lab = "mcp_decision_lab.cli:main"
+
+[tool.hatch.version]
+path = "mcp_decision_lab/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["mcp_decision_lab"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

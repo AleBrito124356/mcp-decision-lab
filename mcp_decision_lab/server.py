@@ -343,9 +343,11 @@ def run(data_dir: "str | Path | None" = None) -> None:
     mcp.run()
 
 
-def main() -> None:
-    """Console entry point: serve over stdio."""
-    run()
+def main(argv: "list[str] | None" = None) -> None:
+    """Console entry point (see :mod:`mcp_decision_lab.cli`)."""
+    from .cli import main as cli_main
+
+    cli_main(argv)
 
 
 if __name__ == "__main__":

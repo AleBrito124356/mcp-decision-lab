@@ -336,7 +336,7 @@ def test_importing_the_server_has_no_side_effects(tmp_path):
 # ----------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("module", ["mcp_decision_lab.server"])
+@pytest.mark.parametrize("module", ["mcp_decision_lab.server", "mcp_decision_lab"])
 def test_stdio_smoke(tmp_path, module):
     async def main():
         with anyio.fail_after(60):
