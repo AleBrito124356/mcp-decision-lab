@@ -64,6 +64,33 @@ def test_demo_markdown_output_has_every_rationale(capsys):
             assert rationale in out
 
 
+def test_readme_matches_the_demo():
+    """Every number the README shows for the example comes from the code."""
+    import tempfile
+
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    with tempfile.TemporaryDirectory() as tmp:
+        lab = DecisionLab(tmp)
+        a = lab.analyze(demo.build(lab))
+
+    # The JSON block right after `analyze("dec-34b5")` in the README.
+    block = readme.split('analyze("dec-34b5")', 1)[1].split("```json", 1)[1].split("```", 1)[0]
+    shown = json.loads(block)
+    assert shown["ranking"] == a["ranking"]
+    for key in ("winner", "tied", "runner_up", "margin", "decisive_criteria", "robustness", "recommendation"):
+        assert shown[key] == a[key], key
+    for s, e in zip(shown["sensitivity"], a["sensitivity"]):
+        assert s["criterion"] == e["criterion"] and s["weight"] == e["weight"]
+        assert (s["flip"] or {}).get("flip_weight") == (e["flip"] or {}).get("flip_weight")
+    assert shown["score_sensitivity"]["most_fragile"][0] == a["score_sensitivity"]["most_fragile"][0]
+    for opt, s in shown["monte_carlo"]["options"].items():
+        assert s["win_probability"] == a["monte_carlo"]["options"][opt]["win_probability"]
+    # The scores table lists every demo cell.
+    for option, cells in demo.SCORES.items():
+        for criterion, (score, rationale) in cells.items():
+            assert rationale in readme, rationale
+
+
 # ----------------------------------------------------------------------
 # list / report on a real data directory
 # ----------------------------------------------------------------------
