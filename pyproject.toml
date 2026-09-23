@@ -23,7 +23,11 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
-dependencies = ["mcp>=1.2.0"]
+dependencies = [
+    # 1.x (FastMCP) and 2.x (MCPServer) are both supported; see server.py.
+    # 1.5 is the oldest release whose stdio transport passes the test suite.
+    "mcp>=1.5,<3",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
