@@ -227,8 +227,12 @@ def test_higher_is_better_false_inverts_effective_score(lab):
 
     out = lab.analyze(did)
     assert out["winner"] == "A"
-    # 'cost' scored low-raw/high-effective is A's co-best criterion
-    assert out["strengths_weaknesses"]["A"]["best_criterion"]["effective_score"] == 8
+    # A's raw cost of 2 inverts to an effective 8, matching its quality of 8:
+    # A is uniform, so no criterion is named as both its best and its worst.
+    sw = out["strengths_weaknesses"]["A"]
+    assert sw["uniform"] is True
+    assert sw["effective_score"] == 8
+    assert sw["best_criterion"] is None and sw["worst_criterion"] is None
 
 
 # ----------------------------------------------------------------------
