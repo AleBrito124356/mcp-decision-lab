@@ -43,7 +43,7 @@ def test_demo_reproduces_the_readme_numbers(capsys):
     assert a["robustness"] == "robust"
     hinge = a["score_sensitivity"]["most_fragile"][0]
     assert (hinge["option"], hinge["criterion"], hinge["flip_score"]) == ("Postgres", "cost", 5.6)
-    assert a["monte_carlo"]["options"]["Postgres"]["win_probability"] == 0.9285
+    assert a["monte_carlo"]["options"]["Postgres"]["win_probability"] == 0.929
 
 
 def test_demo_text_output(capsys):
@@ -51,7 +51,7 @@ def test_demo_text_output(capsys):
     assert code == 0
     assert "1. Postgres  7.1" in out
     assert "cost              0.5    -> DynamoDB wins below 0.1176" in out
-    assert "Postgres 92.8%" in out
+    assert "Postgres 92.9%" in out
     assert "Choose Postgres" in out
 
 

@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Score sensitivity** in `analyze`: for every cell, the exact (closed-form) score beyond which the winner changes, with that cell's rationale. The recommendation names the judgment the decision hinges on.
-- **Monte Carlo robustness** in `analyze`: joint Dirichlet weight and uniform score perturbation, using only the stdlib and a fixed seed. It reports win probability (rank-1 acceptability), the rank distribution, expected rank and total percentiles. It takes new optional arguments `simulations`, `seed`, `score_noise` and `weight_concentration`.
+- **Monte Carlo robustness** in `analyze`: joint Dirichlet weight and uniform score perturbation, using only the stdlib. Every draw comes from `random.random()`, the one generator Python guarantees across versions, so a seed reproduces the same numbers on any supported Python. It reports win probability (rank-1 acceptability), the rank distribution, expected rank and total percentiles. It takes new optional arguments `simulations`, `seed`, `score_noise` and `weight_concentration`.
 - `robustness_checks` in `analyze`, explaining the verdict (weights, scores, Monte Carlo).
 - `what_if` tool: re-rank under hypothetical weights and/or scores without changing the stored session.
 - `export_decision` tool: an ADR-style Markdown decision record (or JSON) with every rationale and the full analysis.
@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Typed tool schemas: a `Criterion` object, 0–10 score bounds, `minItems`, and a minimum rationale length. Tools also carry MCP annotations (read-only / destructive / idempotent) and the server sends usage instructions.
 - CLI: `mcp-decision-lab demo | list | report ID | serve | --version`. With no arguments it still serves MCP over stdio. `python -m mcp_decision_lab` works too.
 - A store format version (v2) with transparent migration of 0.1.x stores, per-decision `schema_version` and `updated_at`, and the analyzed winner and verdict shown in `list_decisions`.
-- Protocol-level tests with a real MCP client (in-process and over stdio) on both SDK lines, a multi-process stress test, and a test that keeps the README example in sync with the code. The suite grew from 18 to 95 tests.
+- Protocol-level tests with a real MCP client (in-process and over stdio) on both SDK lines, a multi-process stress test, and a test that keeps the README example in sync with the code. The suite grew from 18 to 101 tests.
 
 ### Changed
 

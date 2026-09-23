@@ -79,7 +79,7 @@ flowchart TD
 
 **Score sensitivity.** Totals are linear in every cell. The runner-up takes over once the winner's effective score on *c* drops by more than `margin / w_c`. A challenger takes over once its own score rises by more than `(total_A − total_B) / w_c`. Inverted criteria are mapped back to raw scores.
 
-**Monte Carlo.** Weights are drawn from a Dirichlet distribution centred on your weights (`α = concentration × w`), and every score gets independent uniform noise ±`score_noise`, clipped to 0–10. Everything uses Python's stdlib `random` with a fixed seed, so the same seed always gives the same numbers.
+**Monte Carlo.** Weights are drawn from a Dirichlet distribution centred on your weights (`α = concentration × w`), and every score gets independent uniform noise ±`score_noise`, clipped to 0–10. Every draw comes from `random.Random(seed).random()` alone (Marsaglia–Tsang gamma sampling on Box–Muller normals). `random()` is the one part of the `random` module whose output Python guarantees not to change between versions, so the same seed gives the same numbers on every supported Python.
 
 ## Install
 
@@ -259,16 +259,16 @@ Output, abridged: `monte_carlo.options` shows two of its six fields, and `most_f
     "weight_concentration": 20.0,
     "options": {
       "Postgres": {
-        "win_probability": 0.9285,
-        "expected_rank": 1.08
+        "win_probability": 0.929,
+        "expected_rank": 1.084
       },
       "MongoDB": {
-        "win_probability": 0.004,
-        "expected_rank": 2.569
+        "win_probability": 0.003,
+        "expected_rank": 2.576
       },
       "DynamoDB": {
-        "win_probability": 0.0675,
-        "expected_rank": 2.351
+        "win_probability": 0.068,
+        "expected_rank": 2.34
       }
     }
   },
@@ -284,11 +284,11 @@ Output, abridged: `monte_carlo.options` shows two of its six fields, and `most_f
       "passed": true
     }
   },
-  "recommendation": "Choose Postgres (7.1 weighted) over DynamoDB (5.8); margin 1.3. Postgres is strongest on 'team-familiarity' (9/10) and weakest on 'scalability' (6/10). The result is robust: no ±50% relative change to any single criterion weight changes the winner, no single score is within 1 point of flipping it (the closest needs a 2.6-point change). (Extreme shifts could still flip it: 'cost' would have to decrease from 0.5 to 0.1176 for DynamoDB to win; 'scalability' would have to increase from 0.3 to 0.4717 for DynamoDB to win.) The decision hinges most on the judgment that Postgres scores 3 on 'cost' (\"Managed Postgres (RDS/Neon) is cheap and predictable at our scale\"): above 5.6, DynamoDB wins. Monte Carlo (2000 joint perturbations of all weights and scores ±1, seed 7): win probability Postgres 92.8%, DynamoDB 6.8%."
+  "recommendation": "Choose Postgres (7.1 weighted) over DynamoDB (5.8); margin 1.3. Postgres is strongest on 'team-familiarity' (9/10) and weakest on 'scalability' (6/10). The result is robust: no ±50% relative change to any single criterion weight changes the winner, no single score is within 1 point of flipping it (the closest needs a 2.6-point change). (Extreme shifts could still flip it: 'cost' would have to decrease from 0.5 to 0.1176 for DynamoDB to win; 'scalability' would have to increase from 0.3 to 0.4717 for DynamoDB to win.) The decision hinges most on the judgment that Postgres scores 3 on 'cost' (\"Managed Postgres (RDS/Neon) is cheap and predictable at our scale\"): above 5.6, DynamoDB wins. Monte Carlo (2000 joint perturbations of all weights and scores ±1, seed 7): win probability Postgres 92.9%, DynamoDB 6.8%."
 }
 ```
 
-> **Model (to user):** Postgres wins at 7.1 weighted vs DynamoDB's 5.8, and the result is robust. No reasonable (±50%) shift in any single weight changes it. The closest single judgment is Postgres's cost score: if managed Postgres really costs above 5.6 on our scale instead of 3, DynamoDB wins. With all weights and scores wobbling at once, Postgres still comes first in 92.8% of 2,000 simulations. If you expect hockey-stick scale, revisit scalability's weight (DynamoDB overtakes above ~0.47). Otherwise Postgres is the defensible choice.
+> **Model (to user):** Postgres wins at 7.1 weighted vs DynamoDB's 5.8, and the result is robust. No reasonable (±50%) shift in any single weight changes it. The closest single judgment is Postgres's cost score: if managed Postgres really costs above 5.6 on our scale instead of 3, DynamoDB wins. With all weights and scores wobbling at once, Postgres still comes first in 92.9% of 2,000 simulations. If you expect hockey-stick scale, revisit scalability's weight (DynamoDB overtakes above ~0.47). Otherwise Postgres is the defensible choice.
 
 Probe the result without touching the session:
 

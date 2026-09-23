@@ -390,3 +390,49 @@ def test_what_if_requires_a_hypothesis(lab):
     did = demo.build(lab)
     with pytest.raises(ValueError, match="Pass weights"):
         lab.what_if(did)
+
+
+def test_monte_carlo_draws_only_from_random_random(lab, monkeypatch):
+    """random.random() is the only generator whose output Python promises not to
+    change across versions; the seeded numbers must not depend on anything else."""
+    import random
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("Monte Carlo must only use Random.random()")
+
+    for name in ("gammavariate", "uniform", "gauss", "normalvariate", "expovariate", "betavariate"):
+        monkeypatch.setattr(random.Random, name, forbidden)
+    did = demo.build(lab)
+    assert lab.analyze(did)["monte_carlo"]["options"]["Postgres"]["win_probability"] == 0.929
+
+
+@pytest.mark.parametrize("alpha", [0.3, 1.0, 4.0, 10.0])
+def test_gamma_sampler_matches_theory(alpha):
+    """Gamma(alpha, 1) has mean alpha and variance alpha."""
+    import random
+    import statistics
+
+    from mcp_decision_lab.analysis import _gamma
+
+    rng = random.Random(99)
+    xs = [_gamma(rng, alpha) for _ in range(40_000)]
+    assert statistics.fmean(xs) == pytest.approx(alpha, rel=0.03)
+    assert statistics.pvariance(xs) == pytest.approx(alpha, rel=0.06)
+
+
+def test_dirichlet_weights_centre_on_the_chosen_weights():
+    """Dirichlet(20 * w): mean w, sd sqrt(w (1 - w) / 21)."""
+    import math
+    import random
+    import statistics
+
+    from mcp_decision_lab.analysis import _dirichlet
+
+    rng = random.Random(5)
+    w = [0.5, 0.3, 0.2]
+    draws = [_dirichlet(rng, [20 * x for x in w], w) for _ in range(20_000)]
+    for j, wj in enumerate(w):
+        col = [d[j] for d in draws]
+        assert statistics.fmean(col) == pytest.approx(wj, abs=0.005)
+        assert statistics.pstdev(col) == pytest.approx(math.sqrt(wj * (1 - wj) / 21), rel=0.05)
+    assert all(abs(sum(d) - 1.0) < 1e-12 for d in draws[:100])

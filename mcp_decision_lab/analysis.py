@@ -36,11 +36,16 @@ Monte Carlo
 -----------
 Joint perturbation of every weight and every score at once: weights are drawn
 from a Dirichlet distribution centred on the chosen weights
-(``alpha_i = concentration * w_i``, sampled with ``random.gammavariate``) and each
-score gets independent uniform noise ``±score_noise``, clipped to 0-10. The
-result is each option's probability of ranking 1st (its "rank-1
-acceptability"), plus the full rank distribution. A seeded
-:class:`random.Random` makes every run reproducible.
+(``alpha_i = concentration * w_i``) and each score gets independent uniform
+noise ``±score_noise``, clipped to 0-10. The result is each option's
+probability of ranking 1st (its "rank-1 acceptability"), plus the full rank
+distribution.
+
+Every variate is built from :meth:`random.Random.random` alone (Marsaglia-Tsang
+gamma sampling on Box-Muller normals). That method is the one part of the
+``random`` module whose output Python guarantees not to change between
+versions for a given seed; ``gammavariate`` and friends carry no such promise.
+So a seed gives the same numbers on every supported Python.
 """
 
 from __future__ import annotations
@@ -279,8 +284,36 @@ def score_sensitivity(p: Problem, winner: int, runner_up: int) -> list[dict]:
 # ----------------------------------------------------------------------
 
 
+def _normal(rng: random.Random) -> float:
+    """Standard normal via Box-Muller, from ``rng.random()`` only."""
+    u1 = 1.0 - rng.random()  # (0, 1]: log is always finite
+    u2 = rng.random()
+    return math.sqrt(-2.0 * math.log(u1)) * math.cos(2.0 * math.pi * u2)
+
+
+def _gamma(rng: random.Random, alpha: float) -> float:
+    """Gamma(alpha, 1) by Marsaglia & Tsang (2000), from ``rng.random()`` only.
+
+    For alpha < 1 it uses the standard boost Gamma(a) = Gamma(a + 1) * U**(1/a).
+    """
+    if alpha < 1.0:
+        u = 1.0 - rng.random()
+        return _gamma(rng, alpha + 1.0) * u ** (1.0 / alpha)
+    d = alpha - 1.0 / 3.0
+    c = 1.0 / math.sqrt(9.0 * d)
+    while True:
+        x = _normal(rng)
+        v = 1.0 + c * x
+        if v <= 0.0:
+            continue
+        v = v * v * v
+        u = 1.0 - rng.random()
+        if u < 1.0 - 0.0331 * x**4 or math.log(u) < 0.5 * x * x + d * (1.0 - v + math.log(v)):
+            return d * v
+
+
 def _dirichlet(rng: random.Random, alphas: list[float], fallback: list[float]) -> list[float]:
-    g = [rng.gammavariate(a, 1.0) if a > 0 else 0.0 for a in alphas]
+    g = [_gamma(rng, a) if a > 0 else 0.0 for a in alphas]
     s = math.fsum(g)
     if not s > 0.0 or not math.isfinite(s):
         return list(fallback)
@@ -319,7 +352,8 @@ def monte_carlo(
             for j in range(n):
                 e = row[j]
                 if score_noise > 0.0:
-                    e = min(SCORE_MAX, max(SCORE_MIN, e + rng.uniform(-score_noise, score_noise)))
+                    noise = score_noise * (2.0 * rng.random() - 1.0)
+                    e = min(SCORE_MAX, max(SCORE_MIN, e + noise))
                 t += ws[j] * e
             tots.append(t)
             samples[i].append(t)
